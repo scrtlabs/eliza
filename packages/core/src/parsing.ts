@@ -1,6 +1,6 @@
 const jsonBlockPattern = /```json\n([\s\S]*?)\n```/;
 
-export const messageCompletionFooter = `\nResponse format should be formatted in a JSON block like this:
+export const messageCompletionFooter = `\nResponse format should be formatted in a JSON block like this WITHOUT multiline strings and WITHOUT placeholders:
 \`\`\`json
 { "user": "{{agentName}}", "text": "string", "action": "string" }
 \`\`\``;
