@@ -673,6 +673,11 @@ export function getTokenForProvider(
                 character.settings?.secrets?.LIVEPEER_GATEWAY_URL ||
                 settings.LIVEPEER_GATEWAY_URL
             );
+        case ModelProviderName.SECRETAI:
+            return (
+                character.settings?.secrets?.SECRET_AI_API_KEY ||
+                settings.SECRET_AI_API_KEY
+            );
         default:
             const errorMessage = `Failed to get token - unsupported model provider: ${provider}`;
             elizaLogger.error(errorMessage);

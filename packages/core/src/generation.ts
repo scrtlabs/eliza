@@ -1290,6 +1290,34 @@ export async function generateText({
                 break;
             }
 
+            case ModelProviderName.SECRETAI:
+                {
+                    elizaLogger.debug("Initializing SecretAI model.");
+
+                    const secretAiProvider = createOllama({
+                        baseURL: getEndpoint(provider) + "/api",
+                        fetch: runtime.fetch,
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${apiKey}`,
+                        }
+                    });
+                    const secretAi = secretAiProvider(model);
+
+                    const { text: secretAiResponse } = await aiGenerateText({
+                        model: secretAi,
+                        prompt: context,
+                        tools: tools,
+                        onStepFinish: onStepFinish,
+                        temperature: temperature,
+                        maxSteps: maxSteps,
+                        maxTokens: max_response_length,
+                    });
+
+                    response = secretAiResponse;
+                }
+                break;
+
             default: {
                 const errorMessage = `Unsupported provider: ${provider}`;
                 elizaLogger.error(errorMessage);
@@ -1676,6 +1704,8 @@ export const generateImage = async (
                           return runtime.getSetting("VENICE_API_KEY");
                       case ModelProviderName.LIVEPEER:
                           return runtime.getSetting("LIVEPEER_GATEWAY_URL");
+                      case ModelProviderName.SECRETAI:
+                          return runtime.getSetting("SECRET_AI_API_KEY");
                       default:
                           // If no specific match, try the fallback chain
                           return (
@@ -2219,6 +2249,8 @@ export async function handleProvider(
             return await handleDeepSeek(options);
         case ModelProviderName.LIVEPEER:
             return await handleLivepeer(options);
+        case ModelProviderName.SECRETAI:
+            return await handleSecretAi(options);
         default: {
             const errorMessage = `Unsupported provider: ${provider}`;
             elizaLogger.error(errorMessage);
@@ -2559,6 +2591,40 @@ async function handleLivepeer({
 
     return await aiGenerateObject({
         model: livepeerClient.languageModel(model),
+        schema,
+        schemaName,
+        schemaDescription,
+        mode,
+        ...modelOptions,
+    });
+}
+
+/**
+ * Handles object generation for Secret AI models.
+ *
+ * @param {ProviderOptions} options - Options specific to Secret AI.
+ * @returns {Promise<GenerateObjectResult<unknown>>} - A promise that resolves to generated objects.
+ */
+async function handleSecretAi({
+    model,
+    apiKey,
+    schema,
+    schemaName,
+    schemaDescription,
+    mode = "json",
+    modelOptions,
+    provider,
+}: ProviderOptions): Promise<GenerateObjectResult<unknown>> {
+    const secretAiProvider = createOllama({
+        baseURL: getEndpoint(provider) + "/api",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+        }
+    });
+    const secretAi = secretAiProvider(model);
+    return await aiGenerateObject({
+        model: secretAi,
         schema,
         schemaName,
         schemaDescription,
