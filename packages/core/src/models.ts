@@ -1180,6 +1180,9 @@ export const models: Models = {
                 maxInputTokens: 128000,
                 maxOutputTokens: 8192,
                 temperature: 0.7,
+            },
+        },
+    },
     [ModelProviderName.NEARAI]: {
         endpoint: settings.NEARAI_API_URL || "https://api.near.ai/v1",
         model: {
